@@ -1,0 +1,106 @@
+package com.lms.client.web;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.lms.client.service.UserService;
+
+@Controller
+public class HomeController {
+
+	@Autowired 
+	private UserService userService;
+	
+	@Autowired
+	private HttpServletRequest request;
+	
+	@Autowired
+	private HttpServletResponse response;
+	
+	@GetMapping({"/" , "/home"})
+	public String home() {
+		return "home";
+	}
+	
+	@GetMapping("/login")
+	public String login() {
+		return "login";
+	}
+	
+	@PostMapping("/validateLogin")
+	public void validateLogin() {
+		HashMap<String, String> userDetails = userService.validateLogin(request.getParameter("username"), request.getParameter("password"));
+
+		HttpSession session = request.getSession();
+		session.setAttribute("username", userDetails.get("username"));
+		session.setAttribute("role", userDetails.get("role"));
+
+		if(userDetails.get("role").equals("PM")) {
+			request.setAttribute("leaves", userService.getLeaves());
+		}
+		
+		System.out.println(".controller validateLogin " + userDetails);
+		
+		try {
+			response.sendRedirect(request.getContextPath() + "/home");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@PostMapping("/applyLeave")
+	public void applyLeave() {
+		userService.applyLeave((String)request.getSession().getAttribute("username"), request.getParameter("leaveDate"));
+	
+		try {
+			response.sendRedirect(request.getContextPath() + "/home");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	
+	}
+	
+	@PostMapping("/approveLeave")
+	public void approveLeave() {
+		String leaveAppliedBy = request.getParameter("leaveAppliedBy");
+		String leaveApprovedBy = request.getParameter("leaveApprovedBy");
+		String leaveDate = request.getParameter("leaveDate");
+		String jmsMessageId = request.getParameter("jmsMessageId");
+		
+		System.out.println(".approveLeave " + leaveAppliedBy);
+		System.out.println(".approveLeave " + leaveApprovedBy);
+		System.out.println(".approveLeave " + leaveDate);
+		System.out.println(".approveLeave " + jmsMessageId);
+		
+		userService.approveLeave(leaveAppliedBy, leaveApprovedBy, leaveDate, jmsMessageId);
+		
+		System.out.println(".approveLeave done");
+		
+		try {
+			
+			response.sendRedirect(request.getContextPath() + "/success");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@GetMapping("/success")
+	public String success() {
+		return "success";
+	}
+	
+	@GetMapping("/register")
+	public String register() {
+		return "register";
+	}
+	
+}

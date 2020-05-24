@@ -1,0 +1,12 @@
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/      suffix: .jsp
+      
+loginJndi: java:global/leave-management-system/Login!com.demo.service.login.LoginRemote
+leaveServiceJndi: java:global/leave-management-system/LeaveService!com.demo.service.leave.LeaveServiceRemote
+
+webLogicInitialContextFactory: weblogic.jndi.WLInitialContextFactory
+providerUrlIp: t3://127.0.0.1:7001
+providerUrlDns: t3://localhost:7001
+
