@@ -7,6 +7,8 @@
 <title>Header</title>
 <link rel="stylesheet"
 	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+	   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+	
 <style type="text/css">
 a {
 	display: inline-block;
@@ -17,7 +19,7 @@ a {
 </style>
 </head>
 <body>
-	<div class="container" id="navbars">
+	<div class="container" id="navbars" style=" border: 2px ;">
 		<div class="row-4">
 			<a href="<%=request.getContextPath() %>/login">Login</a> 
 			<a href="<%=request.getContextPath() %>/register">Register</a>

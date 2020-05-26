@@ -18,7 +18,6 @@ public class Utility {
 	private AppConfig appConfig;
 	
 	public InitialContext getInitialContext() {
-		System.out.println("app " + appConfig);
 		InitialContext ctx = null;
 		Hashtable<String, String> ht = new Hashtable<String, String>();
 		ht.put(Context.INITIAL_CONTEXT_FACTORY, appConfig.getWebLogicInitialContextFactory());

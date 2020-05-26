@@ -11,6 +11,8 @@ public interface LeaveServiceRemote {
 
 	public void applyLeave(String leaveAppliedBy, String leaveDate);
 	public ArrayList<Leave> getLeaves();
-	public void approveLeave(String leaveAppliedBy, String leaveApprovedBy, String leaveDate, String jmsMessageId);
-	public void saveLeave(String leaveAppliedBy, String leaveApprovedBy, String leaveDate, String jmsMessageId);
+	public ArrayList<Leave> getLeaves(String username);
+	public void approveLeave(String leaveId, String jmsMessageId, String leaveApprovedBy);
+	public void saveLeave(String jmsMessageId, String leaveAppliedBy, String leaveDate);
+	public void updateLeave(String leaveId, String jmsMessageId, String leaveApprovedBy);
 }

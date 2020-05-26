@@ -6,21 +6,37 @@ public class Leave implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private Integer id;
+	private String leaveId;
+	private String jmsMessageId;
 	private String leaveAppliedBy;
 	private String leaveApprovedBy;
 	private String leaveDate;
-	private String messageId;
+	private boolean status;
+	private String createdOn;
+	private String modifiedOn;
 	
 	public Leave() {}
 
-	public Integer getId() {
-		return id;
+	
+	public String getLeaveId() {
+		return leaveId;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
+
+	public void setLeaveId(String leaveId) {
+		this.leaveId = leaveId;
 	}
+
+
+	public String getJmsMessageId() {
+		return jmsMessageId;
+	}
+
+
+	public void setJmsMessageId(String jmsMessageId) {
+		this.jmsMessageId = jmsMessageId;
+	}
+
 
 	public String getLeaveAppliedBy() {
 		return leaveAppliedBy;
@@ -46,18 +62,36 @@ public class Leave implements Serializable{
 		this.leaveDate = leaveDate;
 	}
 
-	public String getMessageId() {
-		return messageId;
+	public boolean isStatus() {
+		return status;
 	}
 
-	public void setMessageId(String messageId) {
-		this.messageId = messageId;
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
+
+	public String getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(String createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public String getModifiedOn() {
+		return modifiedOn;
+	}
+
+	public void setModifiedOn(String modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
 
 	@Override
 	public String toString() {
-		return "Leave [id=" + id + ", leaveAppliedBy=" + leaveAppliedBy + ", leaveApprovedBy=" + leaveApprovedBy
-				+ ", leaveDate=" + leaveDate + ", messageId=" + messageId + "]";
+		return "Leave [leaveId=" + leaveId + ", jmsMessageId=" + jmsMessageId + ", leaveAppliedBy=" + leaveAppliedBy
+				+ ", leaveApprovedBy=" + leaveApprovedBy + ", leaveDate=" + leaveDate + ", status=" + status
+				+ ", createdOn=" + createdOn + ", modifiedOn=" + modifiedOn + "]";
 	}
-	
+
 }

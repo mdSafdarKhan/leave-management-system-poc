@@ -73,12 +73,26 @@ public class UserService {
 		return leaves;
 	}
 	
-	public void approveLeave(String leaveAppliedBy, String leaveApprovedBy, String leaveDate, String jmsMessageId) {
+	public ArrayList<Leave> getLeaves(String username) {
+		ArrayList<Leave> leaves = null;
 		Context ctx = utility.getInitialContext();
 		if(ctx != null) {
 			try {
 				LeaveServiceRemote leaveService = (LeaveServiceRemote) ctx.lookup(appConfig.getLeaveServiceJndi());
-				leaveService.approveLeave(leaveAppliedBy, leaveApprovedBy, leaveDate, jmsMessageId);
+				leaves = leaveService.getLeaves(username);
+			} catch (NamingException e) {
+				e.printStackTrace();
+			}
+		}
+		return leaves;
+	}
+	
+	public void approveLeave(String leaveId, String jmsMessageId, String leaveApprovedBy) {
+		Context ctx = utility.getInitialContext();
+		if(ctx != null) {
+			try {
+				LeaveServiceRemote leaveService = (LeaveServiceRemote) ctx.lookup(appConfig.getLeaveServiceJndi());
+				leaveService.approveLeave(leaveId, jmsMessageId, leaveApprovedBy);
 			} catch (NamingException e) {
 				e.printStackTrace();
 			}

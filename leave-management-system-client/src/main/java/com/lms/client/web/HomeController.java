@@ -71,17 +71,17 @@ public class HomeController {
 	
 	@PostMapping("/approveLeave")
 	public void approveLeave() {
-		String leaveAppliedBy = request.getParameter("leaveAppliedBy");
-		String leaveApprovedBy = request.getParameter("leaveApprovedBy");
-		String leaveDate = request.getParameter("leaveDate");
+		
+		String leaveId = request.getParameter("leaveId");
 		String jmsMessageId = request.getParameter("jmsMessageId");
+		String leaveApprovedBy = request.getParameter("leaveApprovedBy");
 		
-		System.out.println(".approveLeave " + leaveAppliedBy);
-		System.out.println(".approveLeave " + leaveApprovedBy);
-		System.out.println(".approveLeave " + leaveDate);
+		System.out.println(".approveLeave " + leaveId);
 		System.out.println(".approveLeave " + jmsMessageId);
+		System.out.println(".approveLeave " + leaveApprovedBy);
 		
-		userService.approveLeave(leaveAppliedBy, leaveApprovedBy, leaveDate, jmsMessageId);
+		
+		userService.approveLeave(leaveId, jmsMessageId, leaveApprovedBy);
 		
 		System.out.println(".approveLeave done");
 		

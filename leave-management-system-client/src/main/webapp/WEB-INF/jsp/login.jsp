@@ -7,9 +7,11 @@
 <title>Login</title>
 <link rel="stylesheet"
 	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+	   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+	
 </head>
 <body>
-	<div class="container" align="center">
+	<div class="container" align="center" style=" border: 2px ;">
 		<h1>Login</h1>
 		<form action="<%=request.getContextPath() %>/validateLogin" method="post">
 			<table>

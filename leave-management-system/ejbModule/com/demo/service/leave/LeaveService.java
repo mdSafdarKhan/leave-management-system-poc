@@ -1,8 +1,11 @@
 package com.demo.service.leave;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
@@ -17,7 +20,6 @@ import javax.jms.Queue;
 import javax.jms.QueueBrowser;
 import javax.jms.Session;
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
 
 import com.demo.model.leave.Leave;
 
@@ -45,12 +47,20 @@ public class LeaveService implements LeaveServiceRemote, LeaveServiceLocal {
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			MessageProducer sender = session.createProducer(queue);
 			
+			String leaveId = UUID.randomUUID().toString();
+			
 			Leave leave = new Leave();
+			leave.setLeaveId(leaveId);
 			leave.setLeaveAppliedBy(leaveAppliedBy);
 			leave.setLeaveDate(leaveDate);
 			
-			sender.send(session.createObjectMessage(leave));
-
+			ObjectMessage objectMessage = session.createObjectMessage(leave);
+			sender.send(objectMessage);	//to queue
+			
+			saveLeave(leaveId, leaveAppliedBy, leaveDate);	//to database
+			
+			System.out.println(".Leave request sent to queue and saved to database with false status!");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -73,11 +83,12 @@ public class LeaveService implements LeaveServiceRemote, LeaveServiceLocal {
 					Message msg = msgs.nextElement();
 					if(msg instanceof ObjectMessage) {
 						Leave leave = msg.getBody(Leave.class);
-						leave.setMessageId(msg.getJMSMessageID());
+						leave.setJmsMessageId(msg.getJMSMessageID());
 						leaves.add(leave);
 					}
 				}
-				System.out.println("total leaves: " + leaves.size());
+				System.out.println(".leaves " + leaves);
+				System.out.println(".total leaves " + leaves.size());
 			}
 
 		} catch (Exception e) {
@@ -93,11 +104,42 @@ public class LeaveService implements LeaveServiceRemote, LeaveServiceLocal {
 		}
 		return leaves;
 	}
+	
+	public ArrayList<Leave> getLeaves(String username) {
+		ArrayList<Leave> leaves = new ArrayList<Leave>();
+		String query= "select * from leaves where leaveAppliedBy=?";
+		java.sql.Connection connection = null;
+		PreparedStatement pStmt = null;
 
-	@Transactional
-	public void approveLeave(String leaveAppliedBy, String leaveApprovedBy, String leaveDate, String jmsMessageId) {
+		try {
+			connection = loginDataSource.getConnection();
+			pStmt = connection.prepareStatement(query);
+			pStmt.setString(1, username);
+			ResultSet rs = pStmt.executeQuery();
+			while(rs.next()) {
+				String leaveId = rs.getString("leaveId");
+				String leaveApprovedBy = rs.getString("leaveApprovedBy");
+				String leaveDate = rs.getString("leaveDate");
+				Boolean status = rs.getBoolean("status");
+				
+				Leave leave = new Leave();
+				leave.setLeaveId(leaveId);
+				leave.setLeaveApprovedBy(leaveApprovedBy);
+				leave.setLeaveDate(leaveDate);
+				leave.setStatus(status);
+				
+				leaves.add(leave);
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return leaves;
+	}
+
+	public void approveLeave(String leaveId, String jmsMessageId, String leaveApprovedBy) {
 		String messageId = "JMSMessageID='" + jmsMessageId + "'";
-		System.out.println("messageId: " + messageId);
+		System.out.println(".messageId: " + messageId);
 
 		MessageConsumer consumer = null;
 
@@ -107,9 +149,9 @@ public class LeaveService implements LeaveServiceRemote, LeaveServiceLocal {
 			connection.start();
 			consumer = session.createConsumer(queue, messageId);
 			consumer.receiveNoWait();
-			saveLeave(leaveAppliedBy, leaveApprovedBy, leaveDate, jmsMessageId);
+			updateLeave(leaveId, jmsMessageId, leaveApprovedBy);
 			
-			System.out.println(".Message consumed from queue and saved to database!");
+			System.out.println(".Leave message consumed from queue and saved to database!");
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -123,19 +165,41 @@ public class LeaveService implements LeaveServiceRemote, LeaveServiceLocal {
 		}
 	}
 
-	public void saveLeave(String leaveAppliedBy, String leaveApprovedBy, String leaveDate, String jmsMessageId) {
+	public void saveLeave(String leaveId, String leaveAppliedBy, String leaveDate) {
 
-		String query= "insert into leaves (leaveAppliedBy, leaveApprovedBy, leaveDate, messageId) values (?, ?, ?, ?)";
+		String query= "insert into leaves (leaveId, leaveAppliedBy, leaveDate, status, createdOn) values (?, ?, ?, ?, ?)";
 		java.sql.Connection connection = null;
 		PreparedStatement pStmt = null;
 
 		try {
 			connection = loginDataSource.getConnection();
 			pStmt = connection.prepareStatement(query);
-			pStmt.setString(1, leaveAppliedBy);
-			pStmt.setString(2, leaveApprovedBy);
+			pStmt.setString(1, leaveId);
+			pStmt.setString(2, leaveAppliedBy);
 			pStmt.setString(3, leaveDate);
-			pStmt.setString(4, jmsMessageId);
+			pStmt.setBoolean(4, false);
+			pStmt.setString(5, new Date().toString());
+			pStmt.executeUpdate();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateLeave(String leaveId, String jmsMessageId, String leaveApprovedBy) {
+		System.out.println(".leaveId : " + leaveId);
+		String query= "update leaves set jmsMessageId=?, leaveApprovedBy=?, status=?, modifiedOn=? where leaveId=?";
+		java.sql.Connection connection = null;
+		PreparedStatement pStmt = null;
+
+		try {
+			connection = loginDataSource.getConnection();
+			pStmt = connection.prepareStatement(query);
+			pStmt.setString(1, jmsMessageId);
+			pStmt.setString(2, leaveApprovedBy);
+			pStmt.setBoolean(3, true);
+			pStmt.setString(4, new Date().toString());
+			pStmt.setString(5, leaveId);
 			pStmt.executeUpdate();
 		}
 		catch(Exception e){
